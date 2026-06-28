@@ -57,13 +57,12 @@ CREATE WAREHOUSE IF NOT EXISTS SAM_DEMO_CORTEX_WH
 USE WAREHOUSE SAM_DEMO_EXECUTION_WH;
 
 -- ============================================================================
--- SECTION 2: Marketplace Data (Snowflake Public Data - Free)
+-- SECTION 2: Marketplace Data (Snowflake Public Data - Paid)
 -- ============================================================================
 
--- Auto-install financial data share (14,000+ securities, SEC filings, etc.)
-CALL SYSTEM$REQUEST_LISTING_AND_WAIT('GZTSZ290BV255');
-CALL SYSTEM$ACCEPT_LEGAL_TERMS('DATA_EXCHANGE_LISTING', 'GZTSZ290BV255');
-CREATE DATABASE IF NOT EXISTS SNOWFLAKE_PUBLIC_DATA_FREE FROM LISTING 'GZTSZ290BV255';
+-- PREREQUISITE: Snowflake Public Data (Paid) must already be installed in this account.
+-- Listing: https://app.snowflake.com/marketplace/listing/GZTSZ290BUXPL
+-- If not installed, run: CREATE DATABASE IF NOT EXISTS SNOWFLAKE_PUBLIC_DATA_PAID FROM LISTING 'GZTSZ290BUXPL';
 
 -- ============================================================================
 -- SECTION 3: Database and Schemas
@@ -120,7 +119,7 @@ GRANT OPERATE ON WAREHOUSE SAM_DEMO_CORTEX_WH TO ROLE SAM_DEMO_ROLE;
 GRANT MODIFY ON WAREHOUSE SAM_DEMO_CORTEX_WH TO ROLE SAM_DEMO_ROLE;
 
 -- Marketplace data access
-GRANT IMPORTED PRIVILEGES ON DATABASE SNOWFLAKE_PUBLIC_DATA_FREE TO ROLE SAM_DEMO_ROLE;
+GRANT IMPORTED PRIVILEGES ON DATABASE SNOWFLAKE_PUBLIC_DATA_PAID TO ROLE SAM_DEMO_ROLE;
 
 -- ============================================================================
 -- SECTION 5: Cortex AI Privileges
