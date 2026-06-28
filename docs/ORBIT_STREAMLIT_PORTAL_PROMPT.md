@@ -78,9 +78,76 @@ Build a **multi-page Streamlit app** with the following pages:
 #### Page 5: AI Agents
 - Cards for each ORBIT agent with:
   - Agent name and description
-  - Link/button to open in CoWork (just instructional text — "Open in Snowflake Intelligence > CoWork")
-  - Example questions you can ask each agent
-- This page serves as a guide to the AI capabilities
+  - `st.link_button` that deep-links directly into CoWork with the agent pre-selected
+  - Example questions you can ask each agent (shown as clickable suggestions)
+- This page serves as a guide to the AI capabilities AND the launch pad into conversational AI
+- Use this pattern for the CoWork deep-links:
+
+```python
+import streamlit as st
+from snowflake.snowpark.context import get_active_session
+
+session = get_active_session()
+account_url = f"https://{session.get_current_account()}.snowflakecomputing.com"
+
+agents = {
+    "Portfolio Management": {
+        "fqn": "ORBIT_DEMO.AI.ORBIT_PORTFOLIO_MANAGEMENT",
+        "description": "Ask about portfolio holdings, performance, allocation, and rebalancing.",
+        "examples": [
+            "What is the current sector allocation of Portfolio Alpha?",
+            "Which holdings contributed most to returns this quarter?",
+            "Show me the top 10 positions by weight",
+        ]
+    },
+    "Research": {
+        "fqn": "ORBIT_DEMO.AI.ORBIT_RESEARCH",
+        "description": "Deep-dive on companies: financials, SEC filings, earnings, insider activity.",
+        "examples": [
+            "Summarise Apple's latest quarterly earnings",
+            "What did Microsoft's CEO say about AI in the last earnings call?",
+            "Show me insider transactions for Tesla in the last 90 days",
+        ]
+    },
+    "Risk & Compliance": {
+        "fqn": "ORBIT_DEMO.AI.ORBIT_RISK_COMPLIANCE",
+        "description": "Analyse risk exposures, concentration, and compliance constraints.",
+        "examples": [
+            "What is our tech sector concentration risk?",
+            "Are any holdings breaching the 5% single-name limit?",
+            "Show factor exposures for Portfolio Alpha",
+        ]
+    },
+    "Executive Summary": {
+        "fqn": "ORBIT_DEMO.AI.ORBIT_EXECUTIVE_SUMMARY",
+        "description": "High-level portfolio and market summaries for senior stakeholders.",
+        "examples": [
+            "Give me a one-page summary of portfolio performance this month",
+            "What are the key market risks heading into next week?",
+        ]
+    },
+    "Client Advisory": {
+        "fqn": "ORBIT_DEMO.AI.ORBIT_CLIENT_ADVISORY",
+        "description": "Client-facing insights and investment recommendations.",
+        "examples": [
+            "Draft a client note on our current market outlook",
+            "What themes should we be discussing with growth-oriented clients?",
+        ]
+    },
+}
+
+for name, agent in agents.items():
+    with st.container(border=True):
+        st.subheader(name)
+        st.write(agent["description"])
+        cowork_url = f"{account_url}/intelligence/cowork?agent={agent['fqn']}"
+        st.link_button(f"Chat with {name} Agent →", cowork_url)
+        st.caption("Example questions:")
+        for ex in agent["examples"]:
+            st.markdown(f"- _{ex}_")
+```
+
+- The `st.link_button` opens CoWork in a new tab with the specific agent pre-loaded — the user lands directly in a conversation
 
 ### Technical Requirements
 
@@ -144,11 +211,14 @@ financials = session.sql("""
 ```
 
 ### Key Points
-- This is a PORTAL — it shows data and links to the AI agents in CoWork. It does NOT need to embed the agent chat (that's done natively in CoWork).
+- This is a PORTAL — it shows data and **deep-links to the AI agents in CoWork** via `st.link_button`. It does NOT embed agent chat (CoWork handles that natively with streaming, citations, and multi-turn memory).
+- The CoWork URL pattern is: `https://<account>.snowflakecomputing.com/intelligence/cowork?agent=<DB>.<SCHEMA>.<AGENT_NAME>`
+- Use `session.get_current_account()` to dynamically build the account URL — don't hardcode it.
 - Focus on clean, professional presentation of real data.
 - Every chart/metric should come from real tables in ORBIT_DEMO.
 - Use Streamlit's native charting (st.line_chart, st.bar_chart) or plotly for more control.
 - The app should load fast — use `@st.cache_data` with TTL for expensive queries.
+- On every data page (Research, Portfolio, Market), include a contextual "Ask the Agent" link button that takes the user to the relevant agent in CoWork. E.g. on the Research page for Apple, show a button "Ask Research Agent about Apple →" linking to CoWork with the Research agent.
 
 Build this as a complete, working application. Start with the landing page and add pages one at a time.
 
